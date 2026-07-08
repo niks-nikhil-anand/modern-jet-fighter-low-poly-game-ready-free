@@ -113,3 +113,28 @@ html, body, #root, .app-root {
   border-radius: 8px;
   font-size: 0.75rem;
 }
+
+.gizmo-row {
+  display: flex;
+  gap: 10px;
+}
+
+.gizmo-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 229, 255, 0.9);
+  color: #012;
+  font-size: 1.3rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.gizmo-btn:active {
+  background: #00b8cc;
+}

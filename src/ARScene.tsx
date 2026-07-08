@@ -4,6 +4,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { useXRHitTest, XRDomOverlay, IfInSessionMode } from '@react-three/xr'
 import { Reticle } from './Reticle'
 import { JetModel } from './JetModel'
+import { useGestureControls } from './useGestureControls'
 
 const matrixHelper = new THREE.Matrix4()
 const FALLBACK_TIMEOUT_MS = 8000
@@ -22,6 +23,7 @@ export function ARScene() {
   const [sessionStart] = useState(() => Date.now())
   const [showFallback, setShowFallback] = useState(false)
   const camera = useThree((s) => s.camera)
+  const gestures = useGestureControls(!!placement)
 
   useXRHitTest(
     (results, getWorldMatrix) => {
@@ -81,7 +83,8 @@ export function ARScene() {
   const reset = useCallback(() => {
     setPlacement(null)
     setShowFallback(false)
-  }, [])
+    gestures.reset()
+  }, [gestures])
 
   return (
     <>
@@ -93,8 +96,8 @@ export function ARScene() {
       {placement && (
         <JetModel
           position={placement.position}
-          rotationY={placement.rotationY}
-          scale={1}
+          rotationY={placement.rotationY + gestures.rotationOffset}
+          scale={gestures.scale}
           onClipsReady={setClips}
         />
       )}
@@ -134,6 +137,25 @@ export function ARScene() {
                 {clips.length > 0 && (
                   <div className="clip-list">{clips.length} animation clip(s) playing</div>
                 )}
+                <div className="clip-list">
+                  Pinch to zoom ({gestures.scale.toFixed(2)}x) · drag to rotate
+                </div>
+
+                <div className="gizmo-row">
+                  <button className="gizmo-btn" onClick={gestures.rotateLeft} aria-label="Rotate left">
+                    ⟲
+                  </button>
+                  <button className="gizmo-btn" onClick={gestures.zoomOut} aria-label="Zoom out">
+                    −
+                  </button>
+                  <button className="gizmo-btn" onClick={gestures.zoomIn} aria-label="Zoom in">
+                    +
+                  </button>
+                  <button className="gizmo-btn" onClick={gestures.rotateRight} aria-label="Rotate right">
+                    ⟳
+                  </button>
+                </div>
+
                 <button className="reset-btn" onClick={reset}>
                   Reset placement
                 </button>
