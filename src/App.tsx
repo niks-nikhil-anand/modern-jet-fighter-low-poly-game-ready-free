@@ -47,7 +47,7 @@ export default function App() {
 
       {!started && (
         <div className="intro-screen">
-          <h1>F-16 Fighting Falcon — AR Viewer</h1>
+          <h1>Combat Jet — AR Viewer</h1>
           <p>Point your phone at an open floor area and tap Start AR.</p>
 
           {support === 'checking' && <p>Checking device support…</p>}
@@ -67,11 +67,19 @@ export default function App() {
           {error && <p className="warn">{error}</p>}
 
           <p className="attribution-small">
-            F-16 3D model by{' '}
-            <a href="https://sketchfab.com/CreadorDeMu" target="_blank" rel="noreferrer">
-              CreadorDeMu
+            "Combat Jet Animation" by{' '}
+            <a href="https://sketchfab.com/dennish2010" target="_blank" rel="noreferrer">
+              3DHaupt
             </a>{' '}
-            — licensed CC BY 4.0
+            — licensed{' '}
+            <a
+              href="https://creativecommons.org/licenses/by-nc/4.0/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              CC BY-NC 4.0
+            </a>{' '}
+            (non-commercial only)
           </p>
         </div>
       )}

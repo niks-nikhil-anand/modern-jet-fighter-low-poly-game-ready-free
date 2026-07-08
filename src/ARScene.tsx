@@ -106,15 +106,11 @@ export function ARScene() {
         <XRDomOverlay>
           <div className="ar-overlay">
             <div className="attribution">
-              F-16 3D model by{' '}
-              <a
-                href="https://sketchfab.com/CreadorDeMu"
-                target="_blank"
-                rel="noreferrer"
-              >
-                CreadorDeMu
+              "Combat Jet Animation" by{' '}
+              <a href="https://sketchfab.com/dennish2010" target="_blank" rel="noreferrer">
+                3DHaupt
               </a>{' '}
-              — CC BY 4.0
+              — CC BY-NC 4.0
             </div>
 
             {!placement && !showFallback && (
