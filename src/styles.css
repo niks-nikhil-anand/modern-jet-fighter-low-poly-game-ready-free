@@ -1,0 +1,115 @@
+html, body, #root, .app-root {
+  width: 100%;
+  height: 100%;
+}
+
+.app-root {
+  position: relative;
+  font-family: -apple-system, system-ui, sans-serif;
+}
+
+.intro-screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  text-align: center;
+  background: linear-gradient(180deg, #0a1520 0%, #0d2135 100%);
+  color: #fff;
+}
+
+.intro-screen h1 {
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+.start-btn, .place-btn, .reset-btn {
+  font-size: 1rem;
+  padding: 14px 28px;
+  border-radius: 999px;
+  border: none;
+  background: #00e5ff;
+  color: #012;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.start-btn:disabled, .place-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.warn {
+  color: #ff8a80;
+}
+
+.attribution-small {
+  position: absolute;
+  bottom: 16px;
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.attribution-small a {
+  color: #00e5ff;
+}
+
+.ar-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 24px;
+  pointer-events: none;
+}
+
+.ar-overlay > * {
+  pointer-events: auto;
+}
+
+.attribution {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  font-size: 0.75rem;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 6px 10px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.attribution a {
+  color: #00e5ff;
+}
+
+.fallback-panel {
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  padding: 16px;
+  border-radius: 12px;
+  text-align: center;
+  max-width: 320px;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.clip-list {
+  color: #fff;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+}
