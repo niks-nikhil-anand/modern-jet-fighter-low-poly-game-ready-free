@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useGLTF, useAnimations } from '@react-three/drei'
 import * as THREE from 'three'
 
-const MODEL_URL = '/models/combat-jet-optimized.glb'
+const MODEL_URL = '/models/jet-engine-optimized.glb'
 
 export type JetModelHandle = {
   clipNames: string[]
