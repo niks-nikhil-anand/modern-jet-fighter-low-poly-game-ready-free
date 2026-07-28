@@ -8,6 +8,13 @@ html, body, #root, .app-root {
   font-family: -apple-system, system-ui, sans-serif;
 }
 
+/* Stop the browser from treating pinch/drag on the 3D view as native
+   page-zoom or scroll — otherwise it can compete with the pinch-to-zoom /
+   drag-to-rotate touch handlers in useGestureControls.ts. */
+canvas {
+  touch-action: none;
+}
+
 .intro-screen {
   position: absolute;
   inset: 0;
@@ -75,6 +82,7 @@ html, body, #root, .app-root {
 
 .attribution {
   position: absolute;
+  z-index: 10;
   top: 16px;
   left: 16px;
   right: 16px;
@@ -100,41 +108,71 @@ html, body, #root, .app-root {
 }
 
 .controls {
+  position: relative;
+  z-index: 10;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
 }
 
-.clip-list {
-  color: #fff;
-  background: rgba(0, 0, 0, 0.5);
-  padding: 4px 10px;
-  border-radius: 8px;
-  font-size: 0.75rem;
+/* Full-screen transparent layer, rendered inside the WebXR dom-overlay,
+   that catches pinch-to-zoom and drag-to-rotate touches over the model.
+   This must live in the dom-overlay (not on the WebGL canvas) — during an
+   immersive-ar session the canvas doesn't receive normal touch events, only
+   the dom-overlay root does. Sits below the other UI (z-index 10/50) so
+   taps on the slider/reset button still reach those first. */
+.gesture-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  touch-action: none;
+  transition: box-shadow 0.25s ease;
 }
 
-.gizmo-row {
-  display: flex;
-  gap: 10px;
+.gesture-layer-active {
+  box-shadow: inset 0 0 60px 10px rgba(0, 229, 255, 0.25);
 }
 
-.gizmo-btn {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(0, 229, 255, 0.9);
-  color: #012;
-  font-size: 1.3rem;
-  font-weight: 700;
-  cursor: pointer;
+.scrub-track {
+  position: fixed;
+  z-index: 50;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  line-height: 1;
+  gap: 10px;
+  padding: 10px;
+  pointer-events: auto;
 }
 
-.gizmo-btn:active {
-  background: #00b8cc;
+.scrub-percent {
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 3px 8px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+/* Native vertical range slider — modern browsers (incl. Android Chrome)
+   support writing-mode on <input type=range>; direction:rtl flips it so
+   the minimum sits at the bottom and the maximum at the top, matching a
+   bottom-to-up drag. Native inputs own their touch handling entirely, so
+   this works reliably inside the WebXR dom-overlay without custom JS. */
+.scrub-slider {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  width: 40px;
+  height: 46vh;
+  min-height: 220px;
+  margin: 0;
+  accent-color: #00e5ff;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(0, 229, 255, 0.4);
+  border-radius: 20px;
+  touch-action: none;
 }
