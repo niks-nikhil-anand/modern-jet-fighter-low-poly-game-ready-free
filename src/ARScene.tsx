@@ -100,6 +100,7 @@ export function ARScene() {
         <JetModel
           position={placement.position}
           rotationY={placement.rotationY + gestures.rotationOffset}
+          rotationX={gestures.pitchOffset}
           scale={gestures.scale}
           progress={scrub.progress}
         />
@@ -181,6 +182,24 @@ export function ARScene() {
                     aria-label="Rotate right"
                   >
                     ↻
+                  </button>
+                </div>
+
+                <div className="gizmo-row">
+                  <button
+                    className="gizmo-btn"
+                    onClick={gestures.tiltUp}
+                    aria-label="Tilt up"
+                  >
+                    ↑
+                  </button>
+                  <span className="gizmo-label">Tilt</span>
+                  <button
+                    className="gizmo-btn"
+                    onClick={gestures.tiltDown}
+                    aria-label="Tilt down"
+                  >
+                    ↓
                   </button>
                 </div>
 
