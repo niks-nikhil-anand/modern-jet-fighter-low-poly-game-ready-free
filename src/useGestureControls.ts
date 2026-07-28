@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
-import { useThree } from '@react-three/fiber'
+import { RefObject, useEffect, useRef, useState } from 'react'
 
 const MIN_SCALE = 0.2
 const MAX_SCALE = 3
+// Default view is 70% less zoomed in than "full size" (1x) — i.e. 30% scale.
+const DEFAULT_SCALE = 0.3
 const ROTATE_SPEED = 0.01
 const ZOOM_STEP = 0.15
 const ROTATE_STEP = Math.PI / 12 // 15 degrees
@@ -13,28 +14,53 @@ function touchDistance(a: Touch, b: Touch) {
   return Math.sqrt(dx * dx + dy * dy)
 }
 
-export function useGestureControls(active: boolean) {
-  const gl = useThree((s) => s.gl)
-  const [scale, setScale] = useState(1)
-  const [rotationOffset, setRotationOffset] = useState(0)
+/** Tiny haptic tick so a gesture starting feels acknowledged — soft, not buzzy. */
+function softTick(ms = 8) {
+  if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+    try {
+      navigator.vibrate(ms)
+    } catch {
+      // ignore — vibration is a nice-to-have, never a hard requirement
+    }
+  }
+}
 
-  const scaleRef = useRef(1)
+/**
+ * Pinch-to-zoom + one-finger drag-to-rotate.
+ *
+ * Important: `elementRef` must point at a DOM element that lives inside the
+ * WebXR dom-overlay (e.g. a transparent layer rendered alongside the other
+ * overlay UI), NOT the WebGL canvas. During an immersive-ar session the
+ * browser generally does not dispatch normal touch/pointer events to the
+ * canvas — only the designated dom-overlay root receives real DOM input.
+ * Listening on the canvas is why gestures silently did nothing before.
+ */
+export function useGestureControls(active: boolean, elementRef: RefObject<HTMLElement | null>) {
+  const [scale, setScale] = useState(DEFAULT_SCALE)
+  const [rotationOffset, setRotationOffset] = useState(0)
+  const [gesturing, setGesturing] = useState(false)
+
+  const scaleRef = useRef(DEFAULT_SCALE)
   const rotationRef = useRef(0)
   const pinchStartDist = useRef<number | null>(null)
-  const pinchStartScale = useRef(1)
+  const pinchStartScale = useRef(DEFAULT_SCALE)
   const dragStartX = useRef<number | null>(null)
   const dragStartRotation = useRef(0)
 
   useEffect(() => {
     if (!active) return
-    const el = gl.domElement
+    const el = elementRef.current
+    if (!el) return
 
     const onTouchStart = (e: TouchEvent) => {
+      setGesturing(true)
       if (e.touches.length === 2) {
+        softTick()
         pinchStartDist.current = touchDistance(e.touches[0], e.touches[1])
         pinchStartScale.current = scaleRef.current
         dragStartX.current = null
       } else if (e.touches.length === 1) {
+        softTick()
         dragStartX.current = e.touches[0].clientX
         dragStartRotation.current = rotationRef.current
         pinchStartDist.current = null
@@ -60,7 +86,10 @@ export function useGestureControls(active: boolean) {
 
     const onTouchEnd = (e: TouchEvent) => {
       if (e.touches.length < 2) pinchStartDist.current = null
-      if (e.touches.length < 1) dragStartX.current = null
+      if (e.touches.length < 1) {
+        dragStartX.current = null
+        setGesturing(false)
+      }
     }
 
     el.addEventListener('touchstart', onTouchStart, { passive: false })
@@ -74,12 +103,12 @@ export function useGestureControls(active: boolean) {
       el.removeEventListener('touchend', onTouchEnd)
       el.removeEventListener('touchcancel', onTouchEnd)
     }
-  }, [active, gl])
+  }, [active, elementRef])
 
   const reset = () => {
-    scaleRef.current = 1
+    scaleRef.current = DEFAULT_SCALE
     rotationRef.current = 0
-    setScale(1)
+    setScale(DEFAULT_SCALE)
     setRotationOffset(0)
   }
 
@@ -107,5 +136,5 @@ export function useGestureControls(active: boolean) {
     setRotationOffset(next)
   }
 
-  return { scale, rotationOffset, reset, zoomIn, zoomOut, rotateLeft, rotateRight }
+  return { scale, rotationOffset, gesturing, reset, zoomIn, zoomOut, rotateLeft, rotateRight }
 }
