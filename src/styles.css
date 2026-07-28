@@ -116,6 +116,43 @@ canvas {
   gap: 8px;
 }
 
+.gizmo-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.gizmo-label {
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  min-width: 52px;
+  text-align: center;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+.gizmo-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 229, 255, 0.5);
+  background: rgba(0, 0, 0, 0.55);
+  color: #00e5ff;
+  font-size: 1.6rem;
+  line-height: 1;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.gizmo-btn:active {
+  background: rgba(0, 229, 255, 0.25);
+  transform: scale(0.94);
+}
+
 /* Full-screen transparent layer, rendered inside the WebXR dom-overlay,
    that catches pinch-to-zoom and drag-to-rotate touches over the model.
    This must live in the dom-overlay (not on the WebGL canvas) — during an
