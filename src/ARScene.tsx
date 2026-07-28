@@ -108,14 +108,6 @@ export function ARScene() {
       <IfInSessionMode allow="immersive-ar">
         <XRDomOverlay>
           <div className="ar-overlay">
-            <div className="attribution">
-              "Combat Jet Animation" by{' '}
-              <a href="https://sketchfab.com/dennish2010" target="_blank" rel="noreferrer">
-                3DHaupt
-              </a>{' '}
-              — CC BY-NC 4.0
-            </div>
-
             {!placement && !showFallback && (
               <button className="place-btn" onClick={place} disabled={!hitFound}>
                 {hitFound ? 'Tap to place jet' : 'Move phone to scan the floor…'}
