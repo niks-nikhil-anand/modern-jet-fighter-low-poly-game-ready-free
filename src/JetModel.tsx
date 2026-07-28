@@ -16,13 +16,14 @@ export type JetModelHandle = {
 type Props = {
   position: THREE.Vector3
   rotationY: number
+  rotationX: number
   scale: number
   /** 0..1 — maps linearly across each clip's full duration (the "scrub" position). */
   progress: number
   onClipsReady?: (names: string[]) => void
 }
 
-export function JetModel({ position, rotationY, scale, progress, onClipsReady }: Props) {
+export function JetModel({ position, rotationY, rotationX, scale, progress, onClipsReady }: Props) {
   const group = useRef<THREE.Group>(null)
   const { scene, animations } = useGLTF(MODEL_URL)
   const { actions, names } = useAnimations(animations, group)
@@ -61,6 +62,7 @@ export function JetModel({ position, rotationY, scale, progress, onClipsReady }:
   useLayoutEffect(() => {
     if (!group.current) return
     group.current.rotation.y = rotationY
+    group.current.rotation.x = rotationX
     group.current.scale.setScalar(scale)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -74,6 +76,11 @@ export function JetModel({ position, rotationY, scale, progress, onClipsReady }:
     group.current.rotation.y = THREE.MathUtils.lerp(
       group.current.rotation.y,
       rotationY,
+      alpha,
+    )
+    group.current.rotation.x = THREE.MathUtils.lerp(
+      group.current.rotation.x,
+      rotationX,
       alpha,
     )
   })
