@@ -148,6 +148,42 @@ export function ARScene() {
 
             {placement && (
               <div className="controls">
+                <div className="gizmo-row">
+                  <button
+                    className="gizmo-btn"
+                    onClick={gestures.zoomOut}
+                    aria-label="Zoom out"
+                  >
+                    −
+                  </button>
+                  <span className="gizmo-label">Zoom</span>
+                  <button
+                    className="gizmo-btn"
+                    onClick={gestures.zoomIn}
+                    aria-label="Zoom in"
+                  >
+                    +
+                  </button>
+                </div>
+
+                <div className="gizmo-row">
+                  <button
+                    className="gizmo-btn"
+                    onClick={gestures.rotateLeft}
+                    aria-label="Rotate left"
+                  >
+                    ↺
+                  </button>
+                  <span className="gizmo-label">Rotate</span>
+                  <button
+                    className="gizmo-btn"
+                    onClick={gestures.rotateRight}
+                    aria-label="Rotate right"
+                  >
+                    ↻
+                  </button>
+                </div>
+
                 <button className="reset-btn" onClick={reset}>
                   Reset placement
                 </button>
