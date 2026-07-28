@@ -38,10 +38,12 @@ function softTick(ms = 8) {
 export function useGestureControls(active: boolean, elementRef: RefObject<HTMLElement | null>) {
   const [scale, setScale] = useState(DEFAULT_SCALE)
   const [rotationOffset, setRotationOffset] = useState(0)
+  const [pitchOffset, setPitchOffset] = useState(0)
   const [gesturing, setGesturing] = useState(false)
 
   const scaleRef = useRef(DEFAULT_SCALE)
   const rotationRef = useRef(0)
+  const pitchRef = useRef(0)
   const pinchStartDist = useRef<number | null>(null)
   const pinchStartScale = useRef(DEFAULT_SCALE)
   const dragStartX = useRef<number | null>(null)
@@ -108,8 +110,10 @@ export function useGestureControls(active: boolean, elementRef: RefObject<HTMLEl
   const reset = () => {
     scaleRef.current = DEFAULT_SCALE
     rotationRef.current = 0
+    pitchRef.current = 0
     setScale(DEFAULT_SCALE)
     setRotationOffset(0)
+    setPitchOffset(0)
   }
 
   const zoomIn = () => {
@@ -136,5 +140,29 @@ export function useGestureControls(active: boolean, elementRef: RefObject<HTMLEl
     setRotationOffset(next)
   }
 
-  return { scale, rotationOffset, gesturing, reset, zoomIn, zoomOut, rotateLeft, rotateRight }
+  const tiltUp = () => {
+    const next = pitchRef.current - ROTATE_STEP
+    pitchRef.current = next
+    setPitchOffset(next)
+  }
+
+  const tiltDown = () => {
+    const next = pitchRef.current + ROTATE_STEP
+    pitchRef.current = next
+    setPitchOffset(next)
+  }
+
+  return {
+    scale,
+    rotationOffset,
+    pitchOffset,
+    gesturing,
+    reset,
+    zoomIn,
+    zoomOut,
+    rotateLeft,
+    rotateRight,
+    tiltUp,
+    tiltDown,
+  }
 }
