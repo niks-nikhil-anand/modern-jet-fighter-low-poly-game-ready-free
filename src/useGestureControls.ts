@@ -1,11 +1,13 @@
 import { RefObject, useEffect, useRef, useState } from 'react'
 
-const MIN_SCALE = 0.2
+const MIN_SCALE = 0.03
 const MAX_SCALE = 3
 // Default view is 70% less zoomed in than "full size" (1x) — i.e. 30% scale.
 const DEFAULT_SCALE = 0.3
 const ROTATE_SPEED = 0.01
-const ZOOM_STEP = 0.15
+// Multiplicative so each tap is a consistent, noticeable change regardless of
+// current size — a fixed +/- step barely moves the needle near the extremes.
+const ZOOM_FACTOR = 1.25
 const ROTATE_STEP = Math.PI / 12 // 15 degrees
 
 function touchDistance(a: Touch, b: Touch) {
@@ -117,13 +119,13 @@ export function useGestureControls(active: boolean, elementRef: RefObject<HTMLEl
   }
 
   const zoomIn = () => {
-    const next = Math.min(MAX_SCALE, scaleRef.current + ZOOM_STEP)
+    const next = Math.min(MAX_SCALE, scaleRef.current * ZOOM_FACTOR)
     scaleRef.current = next
     setScale(next)
   }
 
   const zoomOut = () => {
-    const next = Math.max(MIN_SCALE, scaleRef.current - ZOOM_STEP)
+    const next = Math.max(MIN_SCALE, scaleRef.current / ZOOM_FACTOR)
     scaleRef.current = next
     setScale(next)
   }
