@@ -149,58 +149,66 @@ export function ARScene() {
 
             {placement && (
               <div className="controls">
-                <div className="gizmo-row">
-                  <button
-                    className="gizmo-btn"
-                    onClick={gestures.zoomOut}
-                    aria-label="Zoom out"
-                  >
-                    −
-                  </button>
-                  <span className="gizmo-label">Zoom</span>
-                  <button
-                    className="gizmo-btn"
-                    onClick={gestures.zoomIn}
-                    aria-label="Zoom in"
-                  >
-                    +
-                  </button>
-                </div>
+                <div className="gizmo-clusters">
+                  <div className="gizmo-cluster">
+                    <span className="gizmo-label">Zoom</span>
+                    <div className="gizmo-cluster-buttons">
+                      <button
+                        className="gizmo-btn"
+                        onClick={gestures.zoomOut}
+                        aria-label="Zoom out"
+                      >
+                        −
+                      </button>
+                      <button
+                        className="gizmo-btn"
+                        onClick={gestures.zoomIn}
+                        aria-label="Zoom in"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
 
-                <div className="gizmo-row">
-                  <button
-                    className="gizmo-btn"
-                    onClick={gestures.rotateLeft}
-                    aria-label="Rotate left"
-                  >
-                    ↺
-                  </button>
-                  <span className="gizmo-label">Rotate</span>
-                  <button
-                    className="gizmo-btn"
-                    onClick={gestures.rotateRight}
-                    aria-label="Rotate right"
-                  >
-                    ↻
-                  </button>
-                </div>
+                  <div className="gizmo-cluster">
+                    <span className="gizmo-label">Rotate</span>
+                    <div className="gizmo-cluster-buttons">
+                      <button
+                        className="gizmo-btn"
+                        onClick={gestures.rotateLeft}
+                        aria-label="Rotate left"
+                      >
+                        ↺
+                      </button>
+                      <button
+                        className="gizmo-btn"
+                        onClick={gestures.rotateRight}
+                        aria-label="Rotate right"
+                      >
+                        ↻
+                      </button>
+                    </div>
+                  </div>
 
-                <div className="gizmo-row">
-                  <button
-                    className="gizmo-btn"
-                    onClick={gestures.tiltUp}
-                    aria-label="Tilt up"
-                  >
-                    ↑
-                  </button>
-                  <span className="gizmo-label">Tilt</span>
-                  <button
-                    className="gizmo-btn"
-                    onClick={gestures.tiltDown}
-                    aria-label="Tilt down"
-                  >
-                    ↓
-                  </button>
+                  <div className="gizmo-cluster">
+                    <span className="gizmo-label">Tilt</span>
+                    <div className="gizmo-cluster-buttons">
+                      <button
+                        className="gizmo-btn"
+                        onClick={gestures.tiltUp}
+                        aria-label="Tilt up"
+                      >
+                        ↑
+                      </button>
+                      <button
+                        className="gizmo-btn"
+                        onClick={gestures.tiltDown}
+                        aria-label="Tilt down"
+                      >
+                        ↓
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
                 <button className="reset-btn" onClick={reset}>
