@@ -1,7 +1,13 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { useFrame, useThree } from '@react-three/fiber'
-import { useXRHitTest, XRDomOverlay, IfInSessionMode } from '@react-three/xr'
+import {
+  IfInSessionMode,
+  useXRHitTest,
+  useXRInputSourceEvent,
+  useXRRequestHitTest,
+  XRDomOverlay,
+} from '@react-three/xr'
 import { Reticle } from './Reticle'
 import { JetModel } from './JetModel'
 import { useGestureControls } from './useGestureControls'
@@ -9,6 +15,8 @@ import { useScrubControl } from './useScrubControl'
 
 const matrixHelper = new THREE.Matrix4()
 const FALLBACK_TIMEOUT_MS = 8000
+const HIT_GRACE_PERIOD_MS = 1500
+const HIT_TEST_TYPES: XRHitTestTrackableType[] = ['plane', 'point']
 
 type Placement = {
   position: THREE.Vector3
@@ -18,57 +26,83 @@ type Placement = {
 export function ARScene() {
   const reticleRef = useRef<THREE.Mesh>(null)
   const reticleMatrix = useRef<THREE.Matrix4 | null>(null)
+  const lastHitAt = useRef(0)
+  const hitFoundRef = useRef(false)
+  const placementRef = useRef<Placement | null>(null)
+  const placingRef = useRef(false)
+  const fallbackReadyRef = useRef(false)
   const [hitFound, setHitFound] = useState(false)
   const [placement, setPlacement] = useState<Placement | null>(null)
-  const [sessionStart] = useState(() => Date.now())
   const [showFallback, setShowFallback] = useState(false)
   const camera = useThree((s) => s.camera)
+  const requestHitTest = useXRRequestHitTest()
   const gestureLayerRef = useRef<HTMLDivElement | null>(null)
   const gestures = useGestureControls(!!placement, gestureLayerRef)
   const scrub = useScrubControl()
 
   useXRHitTest(
     (results, getWorldMatrix) => {
-      if (results.length === 0) {
-        setHitFound(false)
-        if (reticleRef.current) reticleRef.current.visible = false
-        if (!placement && Date.now() - sessionStart > FALLBACK_TIMEOUT_MS) {
-          setShowFallback(true)
-        }
-        return
-      }
-      getWorldMatrix(matrixHelper, results[0])
+      if (placementRef.current || results.length === 0) return
+      if (!getWorldMatrix(matrixHelper, results[0])) return
+
       reticleMatrix.current = matrixHelper.clone()
-      setHitFound(true)
+      lastHitAt.current = Date.now()
+      if (!hitFoundRef.current) {
+        hitFoundRef.current = true
+        setHitFound(true)
+      }
       setShowFallback(false)
       if (reticleRef.current) {
-        reticleRef.current.visible = !placement
+        reticleRef.current.visible = true
         reticleRef.current.position.setFromMatrixPosition(matrixHelper)
       }
     },
     'viewer',
-    'plane',
+    HIT_TEST_TYPES,
   )
 
   useFrame(() => {
-    if (reticleRef.current && !placement) {
-      reticleRef.current.visible = hitFound
+    if (placementRef.current) return
+
+    const hitIsFresh = Date.now() - lastHitAt.current <= HIT_GRACE_PERIOD_MS
+    if (hitFoundRef.current !== hitIsFresh) {
+      hitFoundRef.current = hitIsFresh
+      setHitFound(hitIsFresh)
     }
+    if (reticleRef.current) reticleRef.current.visible = hitIsFresh
   })
 
-  const place = useCallback(() => {
+  // The old fallback was only checked inside the hit-test callback. On a
+  // device where a hit-test source cannot be created, that callback never
+  // runs and the user is permanently stuck. A real timer works on those
+  // tablet implementations too.
+  useEffect(() => {
     if (placement) return
-    if (!reticleMatrix.current) return
-    const position = new THREE.Vector3().setFromMatrixPosition(reticleMatrix.current)
+    fallbackReadyRef.current = false
+    const timeout = window.setTimeout(() => {
+      if (!placementRef.current && !reticleMatrix.current) {
+        fallbackReadyRef.current = true
+        setShowFallback(true)
+      }
+    }, FALLBACK_TIMEOUT_MS)
+    return () => window.clearTimeout(timeout)
+  }, [placement])
+
+  const placeAtMatrix = useCallback((matrix: THREE.Matrix4) => {
+    if (placementRef.current) return
+    const position = new THREE.Vector3().setFromMatrixPosition(matrix)
     const camDir = new THREE.Vector3()
     camera.getWorldDirection(camDir)
     const rotationY = Math.atan2(-camDir.x, -camDir.z)
-    setPlacement({ position, rotationY })
+    const nextPlacement = { position, rotationY }
+    placementRef.current = nextPlacement
+    setPlacement(nextPlacement)
+    setShowFallback(false)
     if (reticleRef.current) reticleRef.current.visible = false
-  }, [placement, camera])
+  }, [camera])
 
   const placeFallback = useCallback(() => {
-    if (placement) return
+    if (placementRef.current) return
     const camDir = new THREE.Vector3()
     camera.getWorldDirection(camDir)
     camDir.y = 0
@@ -78,12 +112,55 @@ export function ARScene() {
       .add(camDir.multiplyScalar(2.2))
       .setY(camPos.y - 1.2)
     const rotationY = Math.atan2(-camDir.x, -camDir.z)
-    setPlacement({ position, rotationY })
+    const nextPlacement = { position, rotationY }
+    placementRef.current = nextPlacement
+    setPlacement(nextPlacement)
     setShowFallback(false)
-  }, [placement, camera])
+  }, [camera])
+
+  const place = useCallback(async () => {
+    if (placementRef.current || placingRef.current) return
+    placingRef.current = true
+    try {
+      // Query again at the moment of the tap. This avoids rejecting tablet
+      // taps just because a continuous hit-test frame was briefly missed.
+      const hit = await requestHitTest('viewer', HIT_TEST_TYPES)
+      if (hit?.results.length && hit.getWorldMatrix(matrixHelper, hit.results[0])) {
+        const matrix = matrixHelper.clone()
+        reticleMatrix.current = matrix
+        lastHitAt.current = Date.now()
+        placeAtMatrix(matrix)
+        return
+      }
+
+      // A recent continuous result is still a safe placement target.
+      if (reticleMatrix.current && Date.now() - lastHitAt.current <= HIT_GRACE_PERIOD_MS) {
+        placeAtMatrix(reticleMatrix.current)
+      } else if (fallbackReadyRef.current) {
+        // Also makes placement possible when DOM Overlay is unavailable and
+        // the user can only trigger the native XR screen-select event.
+        placeFallback()
+      }
+    } catch {
+      // Continuous hit testing and the explicit fallback remain available.
+    } finally {
+      placingRef.current = false
+    }
+  }, [placeAtMatrix, placeFallback, requestHitTest])
+
+  // Some tablet runtimes support WebXR hit testing but not DOM Overlay. In
+  // that case the button is not visible, while the native screen select event
+  // still fires. Supporting both paths keeps placement usable.
+  useXRInputSourceEvent('all', 'select', () => void place(), [place])
 
   const reset = useCallback(() => {
+    placementRef.current = null
+    reticleMatrix.current = null
+    lastHitAt.current = 0
+    hitFoundRef.current = false
+    fallbackReadyRef.current = false
     setPlacement(null)
+    setHitFound(false)
     setShowFallback(false)
     gestures.reset()
     scrub.reset()
@@ -110,8 +187,8 @@ export function ARScene() {
         <XRDomOverlay>
           <div className="ar-overlay">
             {!placement && !showFallback && (
-              <button className="place-btn" onClick={place} disabled={!hitFound}>
-                {hitFound ? 'Tap to place jet' : 'Move phone to scan the floor…'}
+              <button className="place-btn" onClick={() => void place()}>
+                {hitFound ? 'Tap to place jet' : 'Move device to scan, then tap…'}
               </button>
             )}
 
